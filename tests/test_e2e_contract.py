@@ -69,7 +69,7 @@ def faa_failclosed_vintage():
     faa = skel["conditions"]["faa"]
     if faa.get("status") == "live":
         mco = faa["entries"].get("MCO", "")
-        assert "non-US" not in mco and "US airport" in mco, f"MCO entry insane: {mco!r}"  # US airport never mislabeled
+        assert "non-US" not in mco and "US airport, no delay/closure entry" in mco, f"MCO entry insane: {mco!r}"  # US airport never mislabeled
         assert "non-US" in faa["entries"].get("MAA", ""), "MAA is non-US, must say so"
     else:
         assert "skeleton unaffected" in faa.get("reason", "")

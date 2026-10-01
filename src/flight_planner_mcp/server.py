@@ -260,7 +260,7 @@ def _faa(iatas: list[str]) -> dict:
             if ms:
                 hits[code] = " | ".join(ms)
             elif (BY_IATA.get(code) or {}).get("country") == "US":
-                hits[code] = "US airport, no delay/closure entry in current FAA snapshot (all-clear as of fetch; named-unknown, never non-US)"
+                hits[code] = "US airport, no delay/closure entry in current FAA snapshot (all-clear as of fetch; named-unknown)"
             else:
                 hits[code] = "non-US airport, no FAA entry expected"
         return {"status": "live", "feed": "FAA NAS status (US airports only)",
