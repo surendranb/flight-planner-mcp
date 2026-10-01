@@ -1,0 +1,2 @@
+[console_scripts]
+flight-planner-mcp = flight_planner_mcp.server:main

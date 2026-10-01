@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/flight_planner_mcp/server.py
+src/flight_planner_mcp/telemetry.py
+src/flight_planner_mcp.egg-info/PKG-INFO
+src/flight_planner_mcp.egg-info/SOURCES.txt
+src/flight_planner_mcp.egg-info/dependency_links.txt
+src/flight_planner_mcp.egg-info/entry_points.txt
+src/flight_planner_mcp.egg-info/requires.txt
+src/flight_planner_mcp.egg-info/top_level.txt
+tests/test_e2e_contract.py
