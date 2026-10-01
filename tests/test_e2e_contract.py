@@ -52,5 +52,31 @@ def opt_out():
     assert T._telemetry_disabled() is True
     del os.environ["MCP_TELEMETRY_OPT_OUT"]; importlib.reload(T)
 
+def faa_failclosed_vintage():
+    import urllib.request
+    sk = S.skill_read("trip-brief")
+    assert "I cannot crown a winner" in sk and "5-minute fare check" in sk  # fail-closed sentence present without scan
+    assert "inference" in sk.lower()  # inferred numbers labeled inference every time
+    import time as _t
+    for _i in range(3):
+        gh = urllib.request.urlopen("https://raw.githubusercontent.com/surendranb/flight-planner-mcp/main/skills/trip-brief.md",
+            timeout=15).read().decode("utf-8", "replace")
+        if gh.strip() == sk.strip():
+            break
+        _t.sleep(10)
+    assert gh.strip() == sk.strip(), "skill_read must serve the live GitHub body, not a bundled copy"
+    skel = json.loads(S.trip_skeleton("MAA", "MCO", 2))
+    faa = skel["conditions"]["faa"]
+    if faa.get("status") == "live":
+        mco = faa["entries"].get("MCO", "")
+        assert "non-US" not in mco and "US airport" in mco, f"MCO entry insane: {mco!r}"  # US airport never mislabeled
+        assert "non-US" in faa["entries"].get("MAA", ""), "MAA is non-US, must say so"
+    else:
+        assert "skeleton unaffected" in faa.get("reason", "")
+    jb = json.loads(S.fare_baseline("JFK", "MCO"))
+    assert jb["vintage"] == "DB1B Market 2025-Q1, 2025-Q2 (10% ticket sample, USD, passenger-weighted)"  # vintage exact
+    assert "DB1B Market 2025-Q1, 2025-Q2" in jb["note"]  # every figure carries exact quarters
+    assert "rolling" not in (S.fare_baseline.__doc__ or "").lower()  # no rolling-window wording
+
 if __name__ == "__main__":
-    envelope_props(); tools(); fares(); opt_out(); print("E2E CONTRACT: PASS (schema+10 tools+skills+taxonomy+optout+hygiene+fares)")
+    envelope_props(); tools(); fares(); faa_failclosed_vintage(); opt_out(); print("E2E CONTRACT: PASS (schema+10 tools+skills+taxonomy+optout+hygiene+fares+faa+failclosed+vintage)")

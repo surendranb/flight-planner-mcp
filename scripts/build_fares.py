@@ -1,4 +1,4 @@
-"""Build rolling 6-month US fare baseline from BTS DB1B Market bulk zips. Stdlib only.
+"""Build latest-available-snapshot US fare baseline from BTS DB1B Market bulk zips. Stdlib only.
 
 Usage:
     python3 scripts/build_fares.py /tmp/bts/market_2025_1.zip /tmp/bts/market_2025_2.zip

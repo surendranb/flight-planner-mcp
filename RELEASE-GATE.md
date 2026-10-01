@@ -2,10 +2,10 @@
 
 Status: PREPARED 2026-10-01 — NOT PASSED. Builder does not self-pass; an independent harness runs every step below and pastes real output.
 
-## Zero-sum funding (max 3, no ties)
+## Zero-sum funding (max 2, no ties)
 1. Static pair engine + trip-brief verdict (funded). Kills: live-price scraping, fare-history job.
 2. Schema v2 telemetry + edge relay (funded). Kills: custom analytics dashboard, per-user tracking.
-3. Dual-registry bridges + dynamic skills (funded). Deprioritized: PyPI/npm badges, studio subsite page.
+3. Dual-registry bridges + dynamic skills (deprioritized: ships as-is, no new registry work). Kills: PyPI/npm badges, studio subsite page.
 
 ## Task 1 — install via uvx (numeric: exit 0, version 0.1.0 shown)
 ```bash
@@ -59,5 +59,11 @@ uv run python tests/test_e2e_contract.py
 ```
 Pass: both OK lines + `E2E CONTRACT: PASS`.
 
+## Task 8 — browser-lane fare evidence (numeric: 8/8 fields present, scan age <=6h)
+The bundle never drives a browser and stores no live prices. Any price verdict must attach a fresh manual fare scan (fare-scan-local checklist) with exactly these 8 fields, else the trip-brief FAIL-CLOSED sentence fires:
+1. route (e.g. MAA->MCO via FRA) 2. date (YYYY-MM-DD) 3. fare (amount + currency) 4. timestamp (UTC ISO-8601) 5. page URL 6. screenshot path 7. baseline-band comparison (scanned fare vs fare_baseline p25–p75 + vintage) 8. latency (page-load ms or manual-scan minutes).
+Freshness: scan timestamp <=6 hours old at verdict time; older scans are quoted as inference only, never crowned.
+Pass: verdict cites all 8 fields + age <=6h; without a scan the exact fail-closed sentence is present and no winner is named. No live prices committed to repo; Task 7 grep stays clean.
+
 ## Gate verdict
-Independent harness pastes outputs for Tasks 1–7. Any numeric mismatch = FAIL, file issue, no release. Builder signature: backend-engineer 2026-10-01 (prepared, not passed).
+Independent harness pastes outputs for Tasks 1–8. Any numeric mismatch = FAIL, file issue, no release. Builder signature: backend-engineer 2026-10-01 (prepared, not passed).

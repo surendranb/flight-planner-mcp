@@ -1,4 +1,4 @@
-"""flight-planner-mcp v0.2 static planner + rolling BTS fare baseline. No booking, no DB."""
+"""flight-planner-mcp v0.2 static planner + latest-available-snapshot BTS fare baseline (DB1B Market 2025-Q1, 2025-Q2). No booking, no DB."""
 from __future__ import annotations
 import difflib, json, math, re, time, urllib.request
 from pathlib import Path
@@ -167,7 +167,7 @@ def distance_calc(origin: str, destination: str, intent: Optional[str] = None) -
 
 @mcp.tool()
 def fare_baseline(origin: str, destination: str, intent: Optional[str] = None) -> str:
-    """Rolling 6-month US fare baseline: passenger-weighted median/p25/p75 per O&D from BTS DB1B Market. Historical, not a live quote; n<50 suppresses."""
+    """Latest-available-snapshot US fare baseline (DB1B Market 2025-Q1, 2025-Q2): passenger-weighted median/p25/p75 per O&D from BTS DB1B Market. Historical, not a live quote; n<50 suppresses."""
     t0 = time.perf_counter(); o, d = origin.strip().upper(), destination.strip().upper()
     if o not in BY_IATA or d not in BY_IATA:
         out = f"[INPUT_FIXABLE] Unknown endpoint. Candidates for '{origin}': {'; '.join(_candidates(origin))}. Candidates for '{destination}': {'; '.join(_candidates(destination))}."
@@ -177,12 +177,12 @@ def fare_baseline(origin: str, destination: str, intent: Optional[str] = None) -
         rev = FARES.get(f"{d}-{o}")
         extra = f" Reverse {d}->{o} median ${rev['median']} (n={rev['n']}) available." if rev else ""
         out = (f"[TOO_THIN] No fare baseline for {o}->{d}: fewer than 50 sampled tickets "
-               f"in rolling window ({FARES_VINTAGE}).{extra} Suppression, not a guess — check a live fare site.")
+               f"in latest-available snapshot ({FARES_VINTAGE}).{extra} Suppression, not a guess — check a live fare site.")
         _track("fare_baseline", t0, "error", 0, out, intent, "ThinRoute", out); return out
     out = json.dumps({"origin": o, "destination": d, "median_usd": hit["median"],
         "p25_usd": hit["p25"], "p75_usd": hit["p75"], "sampled_tickets": hit["n"],
         "top_carriers": hit["carriers"], "vintage": FARES_VINTAGE,
-        "note": "Historical baseline from BTS DB1B 10% ticket sample; not a live quote."}, indent=2)
+        "note": "Historical baseline from BTS DB1B 10% ticket sample (DB1B Market 2025-Q1, 2025-Q2); not a live quote."}, indent=2)
     _track("fare_baseline", t0, "success", 1, out, intent); return out
 
 @mcp.tool()
@@ -255,10 +255,16 @@ def _faa(iatas: list[str]) -> dict:
             return {"status": "unavailable", "reason": "FAA timeout; skeleton unaffected"}
         hits: dict[str, str] = {}
         for code in iatas:
-            for m in re.finditer(rf"<ARPT>{code}</ARPT>.{{0,300}}", xml):
-                hits[code] = re.sub(r"<[^>]+>", " ", m.group(0)).strip()[:200]
+            ms = [re.sub(r"<[^>]+>", " ", m.group(0)).strip()[:200]
+                  for m in re.finditer(rf"<ARPT>{code}</ARPT>.{{0,300}}", xml)]
+            if ms:
+                hits[code] = " | ".join(ms)
+            elif (BY_IATA.get(code) or {}).get("country") == "US":
+                hits[code] = "US airport, no delay/closure entry in current FAA snapshot (all-clear as of fetch; named-unknown, never non-US)"
+            else:
+                hits[code] = "non-US airport, no FAA entry expected"
         return {"status": "live", "feed": "FAA NAS status (US airports only)",
-            "entries": hits or {c: "no US FAA entry (expected for non-US)" for c in iatas},
+            "entries": hits,
             "fetched_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     except Exception as e:
         return {"status": "unavailable", "reason": f"FAA error ({type(e).__name__}); skeleton unaffected"}

@@ -10,6 +10,12 @@ Use for any origin → destination planning question. No live fares, no booking.
 5. `cheap_date_hint` only with LOW confidence label; never quote prices.
 6. `trip_skeleton` for day plan + best-effort METAR/TAF + FAA snapshot.
 
+## FAIL-CLOSED price rule (no live data here, so no price winner without proof)
+This bundle holds no live fares. Never crown a cheapest flight or quote a price from static pairs or baseline medians.
+- With a fresh fare scan attached (fare-scan-local checklist filled in: route, date, fare, timestamp, page URL, screenshot path, baseline-band comparison, latency; scan under 6 hours old): compare scanned fares against the baseline band, then crown a winner. Tag every scanned number with its timestamp and page URL; tag every baseline-derived number inference.
+- Without one: return flight pairs + baseline band only, then write this exact sentence: "I cannot crown a winner — no fresh scan attached; run the 5-minute fare check in fare-scan-local and paste the result back." Never name a winner in this branch.
+- Every inferred number carries the word inference next to it, every time. No exceptions.
+
 ## Bucket verdict (+-2d window)
  trip-brief always returns three buckets from static pairs:
 - cheapest: shortest total_km 2-stop option (fewest km ≈ lowest fuel cost proxy).

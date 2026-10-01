@@ -1,14 +1,14 @@
 # flight-planner-mcp (package: `flight-planner-mcp`)
 
-Static flight planner v0.2. 10 tools (airport_lookup, airport_nearby, route_check, distance_calc, fare_baseline rolling BTS median, cheap_date_hint low-confidence, trip_skeleton with METAR/TAF + FAA best-effort, flight_pairs 1-stop + 2-stop ranked, skills_list, skill_read), OurAirports 4,568 airports + 34,824 directed pairs, great-circle stdlib. No booking, no DB, zero paid API, zero secrets in repo.
+Static flight planner v0.2. 10 tools (airport_lookup, airport_nearby, route_check, distance_calc, fare_baseline latest-available-snapshot BTS median (DB1B Market 2025-Q1, 2025-Q2), cheap_date_hint low-confidence, trip_skeleton with METAR/TAF + FAA best-effort, flight_pairs 1-stop + 2-stop ranked, skills_list, skill_read), OurAirports 4,568 airports + 34,824 directed pairs, great-circle stdlib. No booking, no DB, zero paid API, zero secrets in repo.
 
-## Fare baseline (rolling 6 months, BTS DB1B Market)
+## Fare baseline (latest-available snapshot, BTS DB1B Market — DB1B Market 2025-Q1, 2025-Q2)
 
-`data/fares-us-rolling.json` holds passenger-weighted median/p25/p75 per directional US O&D from the last 2 DB1B quarters (10% ticket sample, public domain), built by `scripts/build_fares.py` from TranStats PREZIP bulk files (`https://transtats.bts.gov/PREZIP/Origin_and_Destination_Survey_DB1BMarket_<YYYY>_<Q>.zip`). Zero-fare and bulk-fare artifacts dropped; routes with n<50 sampled tickets are suppressed (tool returns `[TOO_THIN]`, never a guess). `data/fares-VINTAGE.txt` stamps the covered quarters. Raw zips (~100MB/quarter) live outside the repo (`/tmp/bts/`) and are never committed — only the ~3.5MB aggregate ships.
+`data/fares-us-rolling.json` holds passenger-weighted median/p25/p75 per directional US O&D from DB1B Market 2025-Q1, 2025-Q2 (latest available at build time; 10% ticket sample, public domain), built by `scripts/build_fares.py` from TranStats PREZIP bulk files (`https://transtats.bts.gov/PREZIP/Origin_and_Destination_Survey_DB1BMarket_<YYYY>_<Q>.zip`). Zero-fare and bulk-fare artifacts dropped; routes with n<50 sampled tickets are suppressed (tool returns `[TOO_THIN]`, never a guess). `data/fares-VINTAGE.txt` stamps the covered quarters. Raw zips (~100MB/quarter) live outside the repo (`/tmp/bts/`) and are never committed — only the ~3.5MB aggregate ships.
 
-## Refresh (quarterly cron, rolling window self-expiring)
+## Refresh (quarterly cron, snapshot replaced each build)
 
-DB1B lags ~1 quarter. Each quarter, download the 2 newest quarters and rebuild; old months fall off automatically, no archive kept.
+DB1B lags ~1 quarter. Each quarter, download the 2 newest quarters and rebuild; the snapshot is replaced whole, no archive kept.
 
 ```cron
 # quarterly, 06:00 UTC on the 15th of Jan/Apr/Jul/Oct (after TranStats posts the new quarter)
