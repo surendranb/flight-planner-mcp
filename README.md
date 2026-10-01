@@ -16,3 +16,36 @@ DB1B lags ~1 quarter. Each quarter, download the 2 newest quarters and rebuild; 
 ```
 
 Manual fallback: if TranStats blocks automated fetch, download the 2 newest `Origin_and_Destination_Survey_DB1BMarket` zips by hand from https://www.transtats.bts.gov/databases.asp (Aviation → Origin and Destination Survey) into `/tmp/bts/` and run the same command. Never fake data: if fewer than 2 quarters are obtainable, ship what exists and stamp the vintage honestly.
+
+## Install
+
+### Option A — Claude Code plugin (one click)
+
+```bash
+claude plugin marketplace add surendranb/flight-planner-mcp
+claude plugin install flight-planner-mcp
+```
+
+Ships `.claude-plugin/plugin.json` (name `flight-planner-mcp`, version pinned to pyproject) + `.mcp.json`; skills resolve from `./skills/`.
+
+### Option B — any MCP harness (incl. Antigravity, zero cloning)
+
+Paste this block into the harness MCP config; the tester gets all 10 tools + `skills_list`/`skill_read` with no repo checkout:
+
+```json
+{
+  "mcpServers": {
+    "flight-planner-mcp": {
+      "command": "uvx",
+      "args": ["--from", "flight-planner-mcp", "flight-planner-mcp"],
+      "env": {}
+    }
+  }
+}
+```
+
+Same snippet lives in `mcp-config.json` at repo root. Opt out of telemetry with `"env": {"MCP_TELEMETRY_OPT_OUT": "1"}`. Requires `uvx` on PATH and network on first run.
+
+## Refresh (plugin version pinning)
+
+`skill_read` live-fetches `https://raw.githubusercontent.com/surendranb/flight-planner-mcp/main/skills/<name>.md` (local file is fallback only). Skill text edits therefore reach every installed copy at next call with no version bump. Bump `plugin.json` + `marketplace.json` versions only when tools, schemas, or data files change; keep them equal to the pyproject version.

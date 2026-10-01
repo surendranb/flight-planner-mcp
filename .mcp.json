@@ -1,0 +1,1 @@
+{"mcpServers":{"flight-planner-mcp":{"args":["--from","flight-planner-mcp","flight-planner-mcp"],"command":"uvx","env":{}}}}

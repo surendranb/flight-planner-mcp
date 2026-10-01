@@ -78,5 +78,25 @@ def faa_failclosed_vintage():
     assert "DB1B Market 2025-Q1, 2025-Q2" in jb["note"]  # every figure carries exact quarters
     assert "rolling" not in (S.fare_baseline.__doc__ or "").lower()  # no rolling-window wording
 
+def plugin_packaging():
+    import tomllib
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    py_ver = tomllib.load(open(root / "pyproject.toml", "rb"))["project"]["version"]
+    pj = json.loads((root / ".claude-plugin" / "plugin.json").read_text())
+    assert pj["name"] == "flight-planner-mcp" and pj["version"] == py_ver, f"plugin.json {pj.get('name')} {pj.get('version')} vs pyproject {py_ver}"
+    assert (root / pj["skills"]).is_dir(), "skills path missing"
+    srv = pj["mcpServers"]["flight-planner-mcp"]
+    assert srv["command"] == "uvx" and srv["args"] == ["--from", "flight-planner-mcp", "flight-planner-mcp"] and isinstance(srv["env"], dict)
+    mp = json.loads((root / ".claude-plugin" / "marketplace.json").read_text())
+    entry = [p for p in mp["plugins"] if p["name"] == "flight-planner-mcp"][0]
+    assert entry["version"] == py_ver, f"marketplace {entry.get('version')} vs pyproject {py_ver}"
+    assert entry["source"]["repo"] == "surendranb/flight-planner-mcp"
+    mc = json.loads((root / "mcp-config.json").read_text())
+    assert mc["mcpServers"]["flight-planner-mcp"]["command"] == "uvx"
+    assert mc["mcpServers"]["flight-planner-mcp"]["args"] == ["--from", "flight-planner-mcp", "flight-planner-mcp"]
+    dotm = json.loads((root / ".mcp.json").read_text())
+    assert dotm == mc, ".mcp.json must equal mcp-config.json server block"
+
 if __name__ == "__main__":
-    envelope_props(); tools(); fares(); faa_failclosed_vintage(); opt_out(); print("E2E CONTRACT: PASS (schema+10 tools+skills+taxonomy+optout+hygiene+fares+faa+failclosed+vintage)")
+    envelope_props(); tools(); fares(); faa_failclosed_vintage(); opt_out(); plugin_packaging(); print("E2E CONTRACT: PASS (schema+10 tools+skills+taxonomy+optout+hygiene+fares+faa+failclosed+vintage+plugin)")
