@@ -1,0 +1,20 @@
+[project]
+name = "flight-planner-mcp"
+version = "0.1.0"
+description = "Static-only flight planner for AI agents: airport lookup, nearby search, route check, distance, date hints, trip skeletons, ranked 1-stop/2-stop pairs. No live fares, no booking."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Surendran B", email = "reachsuren@gmail.com" }]
+keywords = ["mcp", "flights", "flight-planner", "airports", "ourairports", "static", "agents"]
+classifiers = ["Development Status :: 3 - Alpha", "Programming Language :: Python :: 3"]
+dependencies = ["mcp>=2.0.0,<3"]
+[project.optional-dependencies]
+test = ["pytest>=8.0.0", "pytest-asyncio>=0.23.0"]
+[project.scripts]
+flight-planner-mcp = "flight_planner_mcp.server:main"
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+where = ["src"]

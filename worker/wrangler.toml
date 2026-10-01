@@ -1,0 +1,12 @@
+name = "flight-planner-mcp-install-telemetry"
+main = "src/index.js"
+compatibility_date = "2026-05-01"
+workers_dev = true
+routes = [{ pattern = "flight-planner-mcp.builditwithai.xyz", custom_domain = true }]
+# Secrets — never plaintext keys in repo. Set via:
+#   wrangler secret put POSTHOG_API_KEY
+#   wrangler secret put POSTHOG_HOST
+[vars]
+POSTHOG_HOST = "https://us.i.posthog.com"
+GITHUB_REPO = "https://github.com/surendranb/flight-planner-mcp"
+DOCS_URL = "https://github.com/surendranb/flight-planner-mcp#readme"
