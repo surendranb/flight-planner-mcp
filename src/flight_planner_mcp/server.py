@@ -1,4 +1,4 @@
-"""flight-planner-mcp v0.1 static-only planner. No live fares, no booking, no DB."""
+"""flight-planner-mcp v0.2 static planner + rolling BTS fare baseline. No booking, no DB."""
 from __future__ import annotations
 import difflib, json, math, re, time, urllib.request
 from pathlib import Path
@@ -11,6 +11,12 @@ mcp = MCPServer("flight-planner-mcp", title="Flight Planner MCP Server", version
 DATA = Path(__file__).parent / "data"
 AIRPORTS: list[dict] = json.loads((DATA / "airports.json").read_text())
 ROUTES: list[dict] = json.loads((DATA / "routes.json").read_text())
+try:
+    _FARES_DOC = json.loads((DATA / "fares-us-rolling.json").read_text())
+    FARES: dict[str, dict] = _FARES_DOC.get("routes", {})
+    FARES_VINTAGE: str = _FARES_DOC.get("vintage", "unknown")
+except Exception:
+    FARES, FARES_VINTAGE = {}, "fare baseline not built (run scripts/build_fares.py)"
 BY_IATA = {a["iata"]: a for a in AIRPORTS}
 EDGE = {(r["from"], r["to"]) for r in ROUTES} | {(r["to"], r["from"]) for r in ROUTES}
 # Directed graph from full routes.dat (2014-vintage) with airline codes per pair.
@@ -158,6 +164,26 @@ def distance_calc(origin: str, destination: str, intent: Optional[str] = None) -
     km = _km(BY_IATA[o], BY_IATA[d])
     out = json.dumps({"origin": o, "destination": d, "km": km, "approx_hours": round(km/800 + 0.5, 1)}, indent=2)
     _track("distance_calc", t0, "success", 1, out, intent); return out
+
+@mcp.tool()
+def fare_baseline(origin: str, destination: str, intent: Optional[str] = None) -> str:
+    """Rolling 6-month US fare baseline: passenger-weighted median/p25/p75 per O&D from BTS DB1B Market. Historical, not a live quote; n<50 suppresses."""
+    t0 = time.perf_counter(); o, d = origin.strip().upper(), destination.strip().upper()
+    if o not in BY_IATA or d not in BY_IATA:
+        out = f"[INPUT_FIXABLE] Unknown endpoint. Candidates for '{origin}': {'; '.join(_candidates(origin))}. Candidates for '{destination}': {'; '.join(_candidates(destination))}."
+        _track("fare_baseline", t0, "error", 0, out, intent, "ValidationError", out); return out
+    hit = FARES.get(f"{o}-{d}")
+    if not hit:
+        rev = FARES.get(f"{d}-{o}")
+        extra = f" Reverse {d}->{o} median ${rev['median']} (n={rev['n']}) available." if rev else ""
+        out = (f"[TOO_THIN] No fare baseline for {o}->{d}: fewer than 50 sampled tickets "
+               f"in rolling window ({FARES_VINTAGE}).{extra} Suppression, not a guess — check a live fare site.")
+        _track("fare_baseline", t0, "error", 0, out, intent, "ThinRoute", out); return out
+    out = json.dumps({"origin": o, "destination": d, "median_usd": hit["median"],
+        "p25_usd": hit["p25"], "p75_usd": hit["p75"], "sampled_tickets": hit["n"],
+        "top_carriers": hit["carriers"], "vintage": FARES_VINTAGE,
+        "note": "Historical baseline from BTS DB1B 10% ticket sample; not a live quote."}, indent=2)
+    _track("fare_baseline", t0, "success", 1, out, intent); return out
 
 @mcp.tool()
 def cheap_date_hint(origin: str, destination: str, intent: Optional[str] = None) -> str:

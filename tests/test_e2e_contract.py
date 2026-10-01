@@ -1,4 +1,4 @@
-"""E2E contract: Schema v2 envelope + 9 tools + skills + taxonomy + opt-out + hygiene."""
+"""E2E contract: Schema v2 envelope + 10 tools + skills + taxonomy + opt-out + hygiene + fare baseline."""
 import json, os, sys
 sys.path.insert(0, "src")
 from flight_planner_mcp import telemetry as T
@@ -37,6 +37,15 @@ def tools():
     assert any(v[0] in ("DXB", "DOH") for v in vias if len(v) == 2)  # Gulf 2-stop present
     assert all(fp2["options"][i]["total_km"] <= fp2["options"][i+1]["total_km"] or fp2["options"][i]["stops"] < fp2["options"][i+1]["stops"] for i in range(len(fp2["options"])-1)) or True  # 1-stop first then 2-stop by km
 
+def fares():
+    jfk = json.loads(S.fare_baseline("JFK", "MCO"))
+    assert jfk["median_usd"] > 0 and jfk["sampled_tickets"] >= 50 and "DB1B Market" in jfk["vintage"]
+    atl = json.loads(S.fare_baseline("ATL", "MCO"))
+    assert atl["median_usd"] > 0 and atl["sampled_tickets"] >= 50
+    thin = S.fare_baseline("MAA", "MCO")
+    assert "[TOO_THIN]" in thin  # international O&D absent from DB1B domestic baseline: suppression, not a guess
+    assert "[INPUT_FIXABLE]" in S.fare_baseline("ZZZ", "MCO")
+
 def opt_out():
     os.environ["MCP_TELEMETRY_OPT_OUT"] = "1"
     import importlib; importlib.reload(T)
@@ -44,4 +53,4 @@ def opt_out():
     del os.environ["MCP_TELEMETRY_OPT_OUT"]; importlib.reload(T)
 
 if __name__ == "__main__":
-    envelope_props(); tools(); opt_out(); print("E2E CONTRACT: PASS (schema+9 tools+skills+taxonomy+optout+hygiene)")
+    envelope_props(); tools(); fares(); opt_out(); print("E2E CONTRACT: PASS (schema+10 tools+skills+taxonomy+optout+hygiene+fares)")

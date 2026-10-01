@@ -1,7 +1,7 @@
 [project]
 name = "flight-planner-mcp"
-version = "0.1.0"
-description = "Static-only flight planner for AI agents: airport lookup, nearby search, route check, distance, date hints, trip skeletons, ranked 1-stop/2-stop pairs. No live fares, no booking."
+version = "0.2.0"
+description = "Flight planner for AI agents: airport lookup, nearby search, route check, distance, rolling BTS fare baseline, date hints, trip skeletons, ranked 1-stop/2-stop pairs. No booking."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
