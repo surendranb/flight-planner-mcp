@@ -36,6 +36,8 @@ def tools():
     vias = [tuple(o["via"]) for o in fp2["options"]]
     assert any(v[0] in ("DXB", "DOH") for v in vias if len(v) == 2)  # Gulf 2-stop present
     assert all(fp2["options"][i]["total_km"] <= fp2["options"][i+1]["total_km"] or fp2["options"][i]["stops"] < fp2["options"][i+1]["stops"] for i in range(len(fp2["options"])-1)) or True  # 1-stop first then 2-stop by km
+    upd = json.loads(S.check_for_updates())
+    assert upd["server"] == "flight-planner-mcp" and "message" in upd
 
 def fares():
     jfk = json.loads(S.fare_baseline("JFK", "MCO"))
