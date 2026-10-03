@@ -1,7 +1,7 @@
 {
   "name": "flight-planner-mcp",
-  "version": "0.1.0",
-  "description": "Static-only flight planner for AI agents (thin uvx bridge).",
+  "version": "0.2.0",
+  "description": "Static flight planner for AI agents (thin uvx bridge).",
   "main": "index.js",
   "bin": { "flight-planner-mcp": "./index.js" },
   "files": ["index.js"],

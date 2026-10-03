@@ -8,4 +8,8 @@ src/flight_planner_mcp.egg-info/dependency_links.txt
 src/flight_planner_mcp.egg-info/entry_points.txt
 src/flight_planner_mcp.egg-info/requires.txt
 src/flight_planner_mcp.egg-info/top_level.txt
+src/flight_planner_mcp/data/airports.json
+src/flight_planner_mcp/data/fares-VINTAGE.txt
+src/flight_planner_mcp/data/fares-us-rolling.json
+src/flight_planner_mcp/data/routes.json
 tests/test_e2e_contract.py
