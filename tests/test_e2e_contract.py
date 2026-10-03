@@ -39,11 +39,13 @@ def tools():
 
 def fares():
     jfk = json.loads(S.fare_baseline("JFK", "MCO"))
-    assert jfk["median_usd"] > 0 and jfk["sampled_tickets"] >= 50 and "DB1B Market" in jfk["vintage"]
+    assert jfk["median_usd"] > 0 and jfk["sampled_tickets"] >= 50 and ("DB1C Market" in jfk["vintage"] or "DB1B Market" in jfk["vintage"])
+    lax = json.loads(S.fare_baseline("JFK", "LAX"))
+    assert lax["median_usd"] == 333 and lax["p25_usd"] == 223 and lax["p75_usd"] == 478 and lax["sampled_tickets"] == 46175
     atl = json.loads(S.fare_baseline("ATL", "MCO"))
     assert atl["median_usd"] > 0 and atl["sampled_tickets"] >= 50
     thin = S.fare_baseline("MAA", "MCO")
-    assert "[TOO_THIN]" in thin  # international O&D absent from DB1B domestic baseline: suppression, not a guess
+    assert "[TOO_THIN]" in thin  # international O&D absent from domestic baseline: suppression, not a guess
     assert "[INPUT_FIXABLE]" in S.fare_baseline("ZZZ", "MCO")
 
 def opt_out():
@@ -74,8 +76,8 @@ def faa_failclosed_vintage():
     else:
         assert "skeleton unaffected" in faa.get("reason", "")
     jb = json.loads(S.fare_baseline("JFK", "MCO"))
-    assert jb["vintage"] == "DB1B Market 2025-Q1, 2025-Q2 (10% ticket sample, USD, passenger-weighted)"  # vintage exact
-    assert "DB1B Market 2025-Q1, 2025-Q2" in jb["note"]  # every figure carries exact quarters
+    assert jb["vintage"] == "DB1C Market 2026-06 (40% ticket sample, USD, passenger-weighted)"  # vintage exact
+    assert "DB1C Market 2026-06" in jb["note"]  # every figure carries exact vintage
     assert "rolling" not in (S.fare_baseline.__doc__ or "").lower()  # no rolling-window wording
 
 def plugin_packaging():
