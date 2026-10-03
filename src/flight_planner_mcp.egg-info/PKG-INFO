@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: flight-planner-mcp
-Version: 0.2.0
+Version: 0.2.1
 Summary: Flight planner for AI agents: airport lookup, nearby search, route check, distance, rolling BTS fare baseline, date hints, trip skeletons, ranked 1-stop/2-stop pairs. No booking.
 Author-email: Surendran B <reachsuren@gmail.com>
 License-Expression: MIT
