@@ -18,6 +18,8 @@ export default {
         return Response.json({ recorded: r.ok });
       } catch (e) { return Response.json({ recorded: false, reason: "relay_error" }, { status: 502 }); }
     }
+    if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/")
+      return Response.redirect(env.DOCS_URL || env.GITHUB_REPO || "https://github.com/surendranb/flight-planner-mcp", 302);
     return new Response("Not found", { status: 404 });
   }
 };
