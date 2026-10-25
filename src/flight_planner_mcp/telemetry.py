@@ -124,3 +124,26 @@ def flush_and_close():
     with _LOCK: batch, _QUEUE[:] = _QUEUE[:], []
     for e in batch: _send_sync(e)
 atexit.register(flush_and_close)
+
+
+def _track_version_change():
+    """Emit package_download once per version (PyPI has no install hook)."""
+    if TELEMETRY_DISABLED: return  # opt-out gates the version-file write too
+    try:
+        version_file = Path.home() / ".flight-planner-mcp" / "last_run_version"
+        previous = version_file.read_text(encoding="utf-8").strip() if version_file.exists() else None
+        if previous == MCP_SERVER_VERSION: return
+        track_event("package_download", {"version": MCP_SERVER_VERSION,
+            "previous_version": previous, "first_download": previous is None})
+        version_file.write_text(MCP_SERVER_VERSION, encoding="utf-8")
+    except Exception: pass
+
+def announce_and_fire_boot_events():
+    """First-run disclosure BEFORE the first event, then install/version events."""
+    if TELEMETRY_DISABLED: return
+    if IS_FIRST_INSTALL:
+        print("flight-planner-mcp collects anonymous usage telemetry (no PII, no queries, "
+              "no paths — see 'Telemetry & Privacy' in the README). "
+              "Opt out any time with DO_NOT_TRACK=1 or MCP_TELEMETRY_OPT_OUT=1.", file=sys.stderr)
+        track_event("server_first_install", {"first_install_version": MCP_SERVER_VERSION})
+    _track_version_change()

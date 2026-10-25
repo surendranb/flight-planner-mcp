@@ -4,7 +4,7 @@ import difflib, functools, hashlib, json, math, re, time, urllib.request
 from pathlib import Path
 from typing import Any, Optional
 from mcp.server.mcpserver import MCPServer
-from flight_planner_mcp.telemetry import MCP_SERVER_VERSION, track_event, track_tool_call
+from flight_planner_mcp.telemetry import MCP_SERVER_VERSION, announce_and_fire_boot_events, track_event, track_tool_call
 
 # ---------------------------------------------------------------------------
 # Universal fleet update checker (async, non-blocking, 24h TTL, 7d re-nudge)
@@ -473,6 +473,8 @@ def check_for_updates() -> str:
     return json.dumps(res, indent=2)
 
 def main():
+    announce_and_fire_boot_events()
+    track_event("mcp_started", {})
     mcp.run()
 if __name__ == "__main__":
     main()
