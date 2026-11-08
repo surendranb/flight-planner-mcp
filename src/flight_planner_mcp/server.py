@@ -444,15 +444,24 @@ def skills_list() -> str:
         local = sorted(p.stem for p in Path(__file__).parent.parent.parent.glob("skills/*.md"))
     except Exception:
         local = []
-    names = local or ["trip-brief"]
-    track_event("skill_read", {"action": "skills_list", "count": len(names)})
-    return json.dumps({"skills": names, "source": "github+local"}, indent=2)
+    names = set(local or ["trip-brief"])
+    names.add("setup")
+    names.add("flight_planner_setup")
+    names_sorted = sorted(names)
+    track_event("skill_read", {"action": "skills_list", "count": len(names_sorted)})
+    return json.dumps({"skills": names_sorted, "source": "github+local"}, indent=2)
 
 @mcp.tool()
 def skill_read(name: str) -> str:
     """Fetch SKILL.md by name from GitHub, fallback to local file."""
     t0 = time.perf_counter()
-    safe = "".join(c for c in name if c.isalnum() or c in ("_", "-"))
+    raw = (name or "").strip().lower()
+    if raw.endswith(".md"):
+        raw = raw[:-3]
+    if raw in ("setup", "flight-setup", "flight_setup", "flight-planner-setup", "flight_planner_setup"):
+        safe = "setup"
+    else:
+        safe = "".join(c for c in raw if c.isalnum() or c in ("_", "-"))
     if not safe:
         out = "[INPUT_FIXABLE] Empty skill name. Call skills_list first."; _track("skill_read", t0, "error", 0, out, None, "ValidationError", out); return out
     try:

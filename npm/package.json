@@ -1,10 +1,17 @@
 {
   "name": "flight-planner-mcp",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Static flight planner for AI agents (thin uvx bridge).",
   "main": "index.js",
-  "bin": { "flight-planner-mcp": "./index.js" },
-  "files": ["index.js"],
+  "bin": {
+    "flight-planner-mcp": "./index.js"
+  },
+  "files": [
+    "index.js"
+  ],
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/surendranb/flight-planner-mcp.git" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/surendranb/flight-planner-mcp.git"
+  }
 }
